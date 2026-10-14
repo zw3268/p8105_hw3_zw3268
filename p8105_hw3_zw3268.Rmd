@@ -336,3 +336,21 @@ bike_df |>
 ```
 
 July 2024 has the most rides in this sample. July has more rides than January in both years, and each month has more rides in 2024 than in 2020. Member rides outnumber casual rides in all four year-month groups.
+
+### 3. Most popular starting stations in July 2024
+
+```{r bike_stations}
+top_stations =
+  bike_df |>
+  filter(year == 2024, month == "July") |>
+  drop_na(start_station_name) |>
+  count(start_station_name) |>
+  arrange(desc(n)) |>
+  head(5)
+
+top_stations |>
+  rename(Station = start_station_name, Rides = n) |>
+  knitr::kable()
+```
+
+The table shows the five most frequently observed starting stations in the July 2024 sample. I excluded `r sum(is.na(jul_2024$start_station_name))` rides without a starting station name from this ranking.
