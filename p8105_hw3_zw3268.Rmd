@@ -114,3 +114,34 @@ july_check =
 
 Each point represents one station's monthly average maximum temperature in one year, and each line connects the available yearly averages for that station. July is much warmer than January, while January station averages generally show more variation. The lowest January point is station `r jan_low$id` in `r jan_low$year`, with a mean of `r round(jan_low$mean_tmax, digits = 2)`°C; a low winter temperature alone does not establish a data error. An unusually low July point is station `r july_low$id` in `r july_low$year`, with a mean of `r round(july_low$mean_tmax, digits = 2)`°C. Its recorded maximum temperature is below the minimum temperature on `r july_check$inverted` of `r july_check$days` days, suggesting a data issue. I kept these points rather than changing the readings. Monthly means use the available temperatures, and lines can connect observed years across gaps, so coverage differences should be kept in mind.
 
+### 5. Temperature relationship and snowfall distributions
+
+```{r temp_snow, message = FALSE, fig.width = 12, fig.asp = .6}
+temp_plot =
+  noaa_df |>
+  drop_na(tmax, tmin) |>
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex() +
+  labs(
+    title = "Daily temperatures",
+    x = "Minimum temperature (°C)",
+    y = "Maximum temperature (°C)",
+    fill = "Records")
+
+snow_plot =
+  noaa_df |>
+  filter(snow > 0, snow < 100) |>
+  mutate(year = factor(year)) |>
+  ggplot(aes(x = snow, y = year)) +
+  geom_density_ridges(scale = .85) +
+  scale_x_continuous(breaks = c(0, 13, 25, 51, 76, 100)) +
+  labs(
+    title = "Snowfall between 0 and 100 mm",
+    x = "Snowfall (mm)",
+    y = "Year")
+
+temp_plot + snow_plot
+```
+
+Maximum and minimum temperatures have a strong positive relationship: days with higher minimum temperatures generally also have higher maximum temperatures. The hexagons show where observations are concentrated without plotting millions of overlapping points. A few extreme temperature combinations stand apart from the main pattern and may reflect data issues.
+The snowfall distributions have broadly similar shapes across years. There is a broad concentration at smaller amounts, with additional peaks near 25, 51, and 76 mm. The relative heights of these peaks vary by year. The curves are smoothed density estimates; the exact most common values come from the frequency table above. The included observations are strictly greater than 0 and less than 100 mm, so these plots do not describe yearly snowfall totals or the frequency of snowfall.
