@@ -284,3 +284,43 @@ time_df |>
 ```
 
 Each line shows the average minute-level activity for men or women within one education group. I converted each minute's starting position to hours for the x-axis. All groups have low activity overnight, a sharp rise in the morning, and higher activity during the day before declining in the evening. Women generally have higher mean daytime activity in the high school equivalent and more than high school groups, with a clearer difference in the latter. Male and female daytime profiles are more similar in the less than high school group.
+
+# Problem 3
+
+### 1. Import, clean, and combine the data
+
+```{r bike_import, message = FALSE}
+jan_2020 =
+  read_csv("./data/citibike/Jan 2020 Citi.csv.zip") |>
+  mutate(year = 2020, month = "January")
+
+jul_2020 =
+  read_csv("./data/citibike/July 2020 Citi.csv.zip") |>
+  mutate(year = 2020, month = "July")
+
+jan_2024 =
+  read_csv("./data/citibike/Jan 2024 Citi.csv.zip") |>
+  mutate(year = 2024, month = "January")
+
+jul_2024 =
+  read_csv("./data/citibike/July 2024 Citi.csv.zip") |>
+  mutate(year = 2024, month = "July")
+
+bike_df =
+  bind_rows(jan_2020, jul_2020, jan_2024, jul_2024) |>
+  janitor::clean_names() |>
+  mutate(
+    month = factor(month, levels = c("January", "July")),
+    weekdays = factor(
+      weekdays,
+      levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
+                 "Friday", "Saturday", "Sunday")),
+    member_casual = factor(member_casual, levels = c("casual", "member")),
+    rideable_type = factor(rideable_type, levels = c("classic_bike", "electric_bike")))
+
+skimr::skim(bike_df)
+```
+
+The combined dataset contains `r nrow(bike_df)` rides and `r ncol(bike_df)` variables from January and July in 2020 and 2024. Each row represents one ride, identified by `ride_id`. The other variables describe bike type, day of the week, ride duration, starting and ending stations, membership status, year, and month. I added year and month from the file names and set the category order for later tables and plots. The data are tidy, with one ride per row and one variable per column.
+
+These files contain a 1% sample of rides lasting less than four hours. Starting station names are missing for `r sum(is.na(bike_df$start_station_name))` rides, and ending station names are missing for `r sum(is.na(bike_df$end_station_name))` rides. The other fields have no missing values. I kept these records because they can still be used in the ride-count and duration analyses. Duration remains numeric, with the values supplied in the files unchanged.
