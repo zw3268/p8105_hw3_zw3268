@@ -168,3 +168,28 @@ accel_df |>
 
 The demographic file contains `r nrow(covar_df)` participants and `r ncol(covar_df)` variables: participant ID (`seqn`), sex, age, BMI, and education. Each row represents one person. I skipped the first four rows because they contain coding notes rather than participant records. BMI is missing for `r sum(is.na(covar_df$bmi))` participants, and education is missing for `r sum(is.na(covar_df$education))`; sex and age have no missing values.
 The accelerometer file contains `r nrow(accel_df)` participant records and `r ncol(accel_df)` columns: an ID and `r ncol(accel_df) - 1` minute-level MIMS activity values for each person. The minute columns cover a 24-hour day starting at midnight. These activity data are currently in wide format and will be reshaped before analysis.
+
+### 2. Select participants and label the categories
+
+```{r nhanes_clean, message = FALSE, warning = FALSE}
+demo_df =
+  covar_df |>
+  filter(age >= 21) |>
+  drop_na(sex, age, bmi, education) |>
+  mutate(
+    sex = case_match(sex, 1 ~ "Male", 2 ~ "Female"),
+    sex = factor(sex, levels = c("Male", "Female")),
+    education = case_match(
+      education,
+      1 ~ "Less than high school",
+      2 ~ "High school equivalent",
+      3 ~ "More than high school"),
+    education = factor(
+      education,
+      levels = c("Less than high school", "High school equivalent",
+                 "More than high school")))
+
+head(demo_df)
+```
+
+I kept participants aged 21 or older with complete data for sex, age, BMI, and education. This leaves `r nrow(demo_df)` participants, excluding `r nrow(covar_df) - nrow(demo_df)` from the original sample. Sex and education are now factors with readable labels. Sex is labeled Male or Female, and the education levels are set to appear as Less than high school, High school equivalent, and More than high school in tables and plots. Age and BMI remain numeric, and all five demographic variables are kept. The original imported data are also unchanged.
