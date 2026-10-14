@@ -213,3 +213,27 @@ head(nhanes_df)
 
 I reshaped the activity data into minute and MIMS columns, then joined them to the cleaned demographic data using participant ID. The tidy dataset contains `r n_distinct(nhanes_df$seqn)` participants, `r nrow(nhanes_df)` records, and `r ncol(nhanes_df)` variables. Each row represents one participant's activity during one minute. All five demographic variables and the original minute-level MIMS values are retained. Minute is numeric so it can be ordered correctly for later plots, with minute 1 representing the first interval starting at midnight.
 
+### 4. Participant counts and age distributions
+
+```{r nhanes_counts}
+demo_df |>
+  count(education, sex) |>
+  pivot_wider(names_from = sex, values_from = n) |>
+  rename(Education = education) |>
+  knitr::kable()
+```
+
+The more than high school group is the largest. The numbers of men and women are similar in the less than high school and more than high school groups, while the high school equivalent group has more men than women. These counts use the demographic data, where each participant appears once.
+
+```{r nhanes_age, fig.width = 11, fig.asp = .5}
+demo_df |>
+  ggplot(aes(x = sex, y = age)) +
+  geom_boxplot() +
+  facet_grid(. ~ education) +
+  labs(
+    title = "Age distributions by sex and education",
+    x = "Sex",
+    y = "Age (years)")
+```
+
+Participants with more than high school education tend to be younger in this sample. Women in the high school equivalent group have a higher median age than men (62 versus 53 years). Male and female median ages are similar in the other two education groups, and the age distributions overlap substantially.
