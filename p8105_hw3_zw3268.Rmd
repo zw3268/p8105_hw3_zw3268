@@ -69,3 +69,48 @@ head(snow_freq, 10) |>
 ```
 
 Zero snowfall is the most common value, appearing in `r snow_zero$n` records. The next most common values are 25, 13, 51, and 76 mm. Most days have no recorded snowfall. These nonzero amounts correspond approximately to 1, 0.5, 2, and 3 inches, respectively. This pattern is consistent with snowfall recorded in inches and then converted and rounded to millimeters.
+
+### 4. January and July average maximum temperatures
+
+```{r monthly_tmax, message = FALSE, warning = FALSE, fig.width = 10, fig.asp = .5}
+month_df =
+  noaa_df |>
+  filter(month %in% c(1, 7)) |>
+  group_by(id, year, month) |>
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) |>
+  drop_na(mean_tmax) |>
+  mutate(month = case_match(month, 1 ~ "January", 7 ~ "July"))
+
+month_df |>
+  ggplot(aes(x = year, y = mean_tmax, color = id)) +
+  geom_point(alpha = .5) +
+  geom_line() +
+  facet_grid(. ~ month) +
+  theme(legend.position = "none") +
+  labs(
+    title = "January and July temperatures",
+    x = "Year",
+    y = "Mean daily maximum temperature (°C)")
+
+jan_low =
+  month_df |>
+  filter(month == "January") |>
+  arrange(mean_tmax) |>
+  head(1)
+
+july_low =
+  month_df |>
+  filter(month == "July") |>
+  arrange(mean_tmax) |>
+  head(1)
+
+july_check =
+  noaa_df |>
+  filter(id == july_low$id, year == july_low$year, month == 7) |>
+  summarize(
+    days = n(),
+    inverted = sum(tmax < tmin, na.rm = TRUE))
+```
+
+Each point represents one station's monthly average maximum temperature in one year, and each line connects the available yearly averages for that station. July is much warmer than January, while January station averages generally show more variation. The lowest January point is station `r jan_low$id` in `r jan_low$year`, with a mean of `r round(jan_low$mean_tmax, digits = 2)`°C; a low winter temperature alone does not establish a data error. An unusually low July point is station `r july_low$id` in `r july_low$year`, with a mean of `r round(july_low$mean_tmax, digits = 2)`°C. Its recorded maximum temperature is below the minimum temperature on `r july_check$inverted` of `r july_check$days` days, suggesting a data issue. I kept these points rather than changing the readings. Monthly means use the available temperatures, and lines can connect observed years across gaps, so coverage differences should be kept in mind.
+
