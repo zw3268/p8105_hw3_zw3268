@@ -30,3 +30,23 @@ temp_count =
 The dataset contains `r nrow(noaa_df)` records and `r ncol(noaa_df)` variables from `r n_distinct(noaa_df$id)` weather stations in New York State, covering `r min(noaa_df$date)` to `r max(noaa_df$date)`. Each row is one station's daily weather record. The variables are station ID, date, precipitation, snowfall, snow depth, and daily maximum and minimum temperatures. The data are already tidy, with one variable per column and one station-day per row. The original temperature units are tenths of a degree Celsius, and precipitation is in tenths of a millimeter; snowfall and snow depth are in millimeters.
 
 Station IDs and dates have no missing values. Temperature data have the most missing values: `tmax` and `tmin` are missing in `r round(mean(is.na(noaa_df$tmax)) * 100, digits = 2)`% and `r round(mean(is.na(noaa_df$tmin)) * 100, digits = 2)`% of records. Only `r temp_count$n_stations` stations have at least one temperature observation. Precipitation, snowfall, and snow depth are missing in `r round(mean(is.na(noaa_df$prcp)) * 100, digits = 2)`%, `r round(mean(is.na(noaa_df$snow)) * 100, digits = 2)`%, and `r round(mean(is.na(noaa_df$snwd)) * 100, digits = 2)`%, respectively. Each analysis will use the available observations for the variables it needs.
+
+### 2. Clean the dates, variable types, and units
+
+```{r noaa_clean}
+noaa_df =
+  noaa_df |>
+  mutate(date_parts = date) |>
+  separate(date_parts, into = c("year", "month", "day"), sep = "-") |>
+  mutate(
+    year = as.numeric(year),
+    month = as.numeric(month),
+    day = as.numeric(day),
+    tmax = as.numeric(tmax) / 10,
+    tmin = as.numeric(tmin) / 10,
+    prcp = prcp / 10)
+
+head(noaa_df)
+```
+
+I kept the original date and added separate numeric year, month, and day variables. The temperature columns were stored as text, so I converted them to numbers and divided by 10 to get degrees Celsius. I also divided precipitation by 10 to get millimeters. Snowfall and snow depth are already in millimeters, so I kept their units. The cleaning keeps all records and leaves missing values as NA; they will be handled separately for each analysis.
