@@ -260,3 +260,27 @@ daily_df |>
 ```
 
 I summed all 1440 minute-level MIMS values for each participant, so each point represents one person's total activity over the day. Total activity generally falls at older ages, although the smooth trends do not decline steadily across the full age range. In the more than high school group, the women's curve is above the men's for most ages. The high school equivalent group has a curved pattern, with activity rising into middle age before falling. Individual totals vary widely, including one very low value in the more than high school group. These patterns describe this sample.
+
+### 6. Activity over the course of the day
+
+```{r nhanes_time, message = FALSE, fig.width = 11, fig.asp = .5}
+time_df =
+  nhanes_df |>
+  group_by(education, sex, minute) |>
+  summarize(mean_mims = mean(mims)) |>
+  mutate(hour = (minute - 1) / 60)
+
+time_df |>
+  ggplot(aes(x = hour, y = mean_mims, color = sex)) +
+  geom_line() +
+  facet_grid(. ~ education) +
+  scale_x_continuous(breaks = c(0, 6, 12, 18, 24)) +
+  labs(
+    title = "Average activity over the day",
+    x = "Hour of day",
+    y = "Mean minute-level activity (MIMS)",
+    color = "Sex") +
+  theme(legend.position = "bottom")
+```
+
+Each line shows the average minute-level activity for men or women within one education group. I converted each minute's starting position to hours for the x-axis. All groups have low activity overnight, a sharp rise in the morning, and higher activity during the day before declining in the evening. Women generally have higher mean daytime activity in the high school equivalent and more than high school groups, with a clearer difference in the latter. Male and female daytime profiles are more similar in the less than high school group.
