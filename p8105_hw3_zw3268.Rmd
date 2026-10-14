@@ -193,3 +193,23 @@ head(demo_df)
 ```
 
 I kept participants aged 21 or older with complete data for sex, age, BMI, and education. This leaves `r nrow(demo_df)` participants, excluding `r nrow(covar_df) - nrow(demo_df)` from the original sample. Sex and education are now factors with readable labels. Sex is labeled Male or Female, and the education levels are set to appear as Less than high school, High school equivalent, and More than high school in tables and plots. Age and BMI remain numeric, and all five demographic variables are kept. The original imported data are also unchanged.
+
+### 3. Tidy and merge the activity data
+
+```{r nhanes_merge, message = FALSE}
+accel_long =
+  accel_df |>
+  pivot_longer(
+    min1:min1440,
+    names_to = "minute",
+    names_prefix = "min",
+    values_to = "mims") |>
+  mutate(minute = as.numeric(minute))
+
+nhanes_df = left_join(demo_df, accel_long, by = "seqn")
+
+head(nhanes_df)
+```
+
+I reshaped the activity data into minute and MIMS columns, then joined them to the cleaned demographic data using participant ID. The tidy dataset contains `r n_distinct(nhanes_df$seqn)` participants, `r nrow(nhanes_df)` records, and `r ncol(nhanes_df)` variables. Each row represents one participant's activity during one minute. All five demographic variables and the original minute-level MIMS values are retained. Minute is numeric so it can be ordered correctly for later plots, with minute 1 representing the first interval starting at midnight.
+
