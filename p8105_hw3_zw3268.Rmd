@@ -145,3 +145,26 @@ temp_plot + snow_plot
 
 Maximum and minimum temperatures have a strong positive relationship: days with higher minimum temperatures generally also have higher maximum temperatures. The hexagons show where observations are concentrated without plotting millions of overlapping points. A few extreme temperature combinations stand apart from the main pattern and may reflect data issues.
 The snowfall distributions have broadly similar shapes across years. There is a broad concentration at smaller amounts, with additional peaks near 25, 51, and 76 mm. The relative heights of these peaks vary by year. The curves are smoothed density estimates; the exact most common values come from the frequency table above. The included observations are strictly greater than 0 and less than 100 mm, so these plots do not describe yearly snowfall totals or the frequency of snowfall.
+
+# Problem 2
+
+### 1. Import and inspect the data
+
+```{r nhanes_import, message = FALSE}
+covar_df =
+  read_csv("./data/nhanes_covar.csv", skip = 4) |>
+  janitor::clean_names()
+
+accel_df =
+  read_csv("./data/nhanes_accel.csv") |>
+  janitor::clean_names()
+
+skimr::skim(covar_df)
+
+accel_df |>
+  select(seqn, min1:min5) |>
+  head()
+```
+
+The demographic file contains `r nrow(covar_df)` participants and `r ncol(covar_df)` variables: participant ID (`seqn`), sex, age, BMI, and education. Each row represents one person. I skipped the first four rows because they contain coding notes rather than participant records. BMI is missing for `r sum(is.na(covar_df$bmi))` participants, and education is missing for `r sum(is.na(covar_df$education))`; sex and age have no missing values.
+The accelerometer file contains `r nrow(accel_df)` participant records and `r ncol(accel_df)` columns: an ID and `r ncol(accel_df) - 1` minute-level MIMS activity values for each person. The minute columns cover a 24-hour day starting at midnight. These activity data are currently in wide format and will be reshaped before analysis.
